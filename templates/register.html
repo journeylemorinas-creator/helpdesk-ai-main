@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Create account · HelpDesk AI{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-1">Create a technician account</h1>
+        <p class="text-muted small">Password: at least 8 characters with a letter and a number.</p>
+        <form method="post" novalidate>
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <div class="mb-3">
+            <label class="form-label" for="full_name">Full name</label>
+            <input class="form-control" id="full_name" name="full_name" value="{{ values.get('full_name', '') }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="username">Username</label>
+            <input class="form-control" id="username" name="username" value="{{ values.get('username', '') }}" autocomplete="username" required>
+            <div class="form-text">Lowercase letters, numbers, dot or underscore.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="password">Password</label>
+            <input class="form-control" id="password" name="password" type="password" autocomplete="new-password" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="confirm">Confirm password</label>
+            <input class="form-control" id="confirm" name="confirm" type="password" autocomplete="new-password" required>
+          </div>
+          <button class="btn btn-primary w-100" type="submit">Create account</button>
+        </form>
+        <p class="text-center small mt-3 mb-0">Already registered? <a href="{{ url_for('login') }}">Log in</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

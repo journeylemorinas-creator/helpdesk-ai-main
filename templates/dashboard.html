@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · HelpDesk AI{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-0">Service tickets</h1>
+    <p class="text-muted mb-0 small">Open and urgent tickets are listed first.</p>
+  </div>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ticketModal" id="btnNew">
+    <i class="bi bi-plus-lg me-1"></i>New ticket
+  </button>
+</div>
+
+<div class="row g-3 mb-4" id="summaryCards" aria-live="polite">
+  <div class="col-6 col-md"><div class="card stat"><div class="card-body"><div class="stat-num" id="sTotal">–</div><div class="stat-label">Total</div></div></div></div>
+  <div class="col-6 col-md"><div class="card stat"><div class="card-body"><div class="stat-num" id="sOpen">–</div><div class="stat-label">Open</div></div></div></div>
+  <div class="col-6 col-md"><div class="card stat"><div class="card-body"><div class="stat-num" id="sProgress">–</div><div class="stat-label">In progress</div></div></div></div>
+  <div class="col-6 col-md"><div class="card stat stat-danger"><div class="card-body"><div class="stat-num" id="sUrgent">–</div><div class="stat-label">Urgent &amp; unresolved</div></div></div></div>
+  <div class="col-12 col-md"><div class="card stat stat-ok"><div class="card-body"><div class="stat-num" id="sDone">–</div><div class="stat-label">Resolved / closed</div></div></div></div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form class="row g-2 mb-3" id="filters" role="search">
+      <div class="col-md-4">
+        <label class="visually-hidden" for="q">Search</label>
+        <input class="form-control" id="q" placeholder="Search title, description, requester or #id" maxlength="60">
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="visually-hidden" for="fStatus">Status</label>
+        <select class="form-select" id="fStatus"><option value="">All statuses</option>{% for s in statuses %}<option>{{ s }}</option>{% endfor %}</select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="visually-hidden" for="fCategory">Category</label>
+        <select class="form-select" id="fCategory"><option value="">All categories</option>{% for c in categories %}<option>{{ c }}</option>{% endfor %}</select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="visually-hidden" for="fPriority">Priority</label>
+        <select class="form-select" id="fPriority"><option value="">All priorities</option>{% for p in priorities %}<option>{{ p }}</option>{% endfor %}</select>
+      </div>
+      <div class="col-6 col-md-2 d-grid">
+        <button class="btn btn-outline-secondary" type="button" id="btnClear">Clear</button>
+      </div>
+    </form>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>#</th><th>Ticket</th><th>Category</th><th>Priority</th><th>Status</th><th class="text-end">Updated</th></tr></thead>
+        <tbody id="ticketRows"><tr><td colspan="6" class="text-center text-muted py-4">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- New ticket modal -->
+<div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <form class="modal-content" id="ticketForm" novalidate>
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="ticketModalLabel">New ticket</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger d-none" id="formError" role="alert"></div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" for="f_requester_name">Requester name</label>
+            <input class="form-control" id="f_requester_name" name="requester_name" maxlength="80">
+            <div class="invalid-feedback"></div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="f_requester_email">Requester email <span class="text-muted">(optional)</span></label>
+            <input class="form-control" id="f_requester_email" name="requester_email" type="email" maxlength="120">
+            <div class="invalid-feedback"></div>
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="f_title">Title</label>
+            <input class="form-control" id="f_title" name="title" maxlength="120">
+            <div class="invalid-feedback"></div>
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="f_description">Describe the problem</label>
+            <textarea class="form-control" id="f_description" name="description" rows="4" maxlength="2000"></textarea>
+            <div class="invalid-feedback"></div>
+          </div>
+          <div class="col-12">
+            <div class="triage-box" id="triagePreview" aria-live="polite">
+              <div class="fw-semibold mb-1"><i class="bi bi-stars me-1"></i>Triage suggestion</div>
+              <div class="text-muted small">Type a title and description to see the suggested category, priority and first steps.</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="f_category">Category</label>
+            <select class="form-select" id="f_category" name="category">
+              <option value="">Use the suggestion</option>{% for c in categories %}<option>{{ c }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="f_priority">Priority</label>
+            <select class="form-select" id="f_priority" name="priority">
+              <option value="">Use the suggestion</option>{% for p in priorities %}<option>{{ p }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create ticket</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>HelpDesk.initDashboard();</script>{% endblock %}
